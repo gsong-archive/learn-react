@@ -29,7 +29,6 @@ const todo = (state, action) => {
   }
 }
 
-
 const todos = (state=[], action) => {
   switch (action.type) {
     case 'ADD_TODO':
@@ -43,7 +42,6 @@ const todos = (state=[], action) => {
   }
 }
 
-
 const visibilityFilter = (state='SHOW_ALL', action) => {
   switch (action.type) {
     case 'SET_VISIBILITY_FILTER':
@@ -54,8 +52,20 @@ const visibilityFilter = (state='SHOW_ALL', action) => {
   }
 }
 
-
 const todoApp = combineReducers({todos, visibilityFilter})
+
+
+// Action creators
+let nextTodoId = 0;
+const addTodo = text => ({
+  type: 'ADD_TODO',
+  id: nextTodoId++,
+  text
+})
+
+const toggleTodo = id => ({type: 'TOGGLE_TODO', id})
+
+const setVisibilityFilter = filter => ({type: 'SET_VISIBILITY_FILTER', filter})
 
 
 // Utilities
@@ -73,42 +83,15 @@ const getVisibleTodos = (todos, filter) => {
 }
 
 
-let nextTodoId = 0;
-
-const addTodo = ({store, value}) => {
-  store.dispatch({
-    type: 'ADD_TODO',
-    id: nextTodoId++,
-    text: value
-  })
-}
-
-
-const toggleTodo = ({store, id}) => {
-  store.dispatch({
-    type: 'TOGGLE_TODO',
-    id
-  })
-}
-
-
-const applyFilter = ({store, filter}) => {
-  store.dispatch({
-    type: 'SET_VISIBILITY_FILTER',
-    filter
-  })
-}
-
-
 // Presentational components
-const AddTodo = (__, {store}) => {
+let AddTodo = ({dispatch}) => {
   let input;
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault()
-        addTodo({store, value: input.value})
+        dispatch(addTodo(input.value))
         input.value = ''
       }}
     >
@@ -117,26 +100,19 @@ const AddTodo = (__, {store}) => {
     </form>
   )
 }
-AddTodo.contextTypes = {
-  store: React.PropTypes.object
-}
+AddTodo = connect()(AddTodo)
 
-
-const TodoList = ({todos, onTodoClick}, {store}) => (
+const TodoList = ({todos, onTodoClick}) => (
   <ul>
     {todos.map(todo =>
       <Todo
         key={todo.id}
         {...todo}
-        onClick={() => onTodoClick({store, id: todo.id})}
+        onClick={() => onTodoClick(todo.id)}
       />
     )}
   </ul>
 )
-TodoList.contextTypes = {
-  store: React.PropTypes.object
-}
-
 
 const Todo = ({onClick, completed, text}) => (
   <li
@@ -149,7 +125,6 @@ const Todo = ({onClick, completed, text}) => (
   </li>
 )
 
-
 const Footer = () => (
   <div>
     Show:
@@ -161,7 +136,6 @@ const Footer = () => (
     <FilterLink filter="SHOW_COMPLETED">Completed</FilterLink>
   </div>
 )
-
 
 const Link = ({active, onClick, children}) => {
   if (active) {
@@ -182,80 +156,30 @@ const Link = ({active, onClick, children}) => {
 
 
 // Container components
-const mapStateToProps = state => ({
-  todos: getVisibleTodos(state.todos, state.visibilityFilter)
+const mapStateToTodoListProps = ({todos, visibilityFilter}) => ({
+  todos: getVisibleTodos(todos, visibilityFilter)
 })
-
-const mapDispatchToProps = dispatch => ({
-  onTodoClick: id => {
-    dispatch({type: 'TOGGLE_TODO', id})
-  }
+const mapDispatchToTodoListProps = dispatch => ({
+  onTodoClick: id => dispatch(toggleTodo(id))
 })
-
-const VisibleTodos = connect(mapStateToProps, mapDispatchToProps)(TodoList)
-
-
-//class VisibleTodos extends React.Component {
-//  componentDidMount() {
-//    const {store} = this.context
-//    this.unsubscribe = store.subscribe(() => this.forceUpdate())
-//  }
-//
-//  componentWillUnmount() {
-//    this.unsubscribe()
-//  }
-//
-//  render() {
-//    const {store} = this.context
-//    const {todos, visibilityFilter} = store.getState()
-//
-//    return (
-//      <TodoList
-//        todos={getVisibleTodos(todos, visibilityFilter)}
-//        onTodoClick={toggleTodo}
-//      />
-//    )
-//  }
-//}
-//VisibleTodos.contextTypes = {
-//  store: React.PropTypes.object
-//}
+const VisibleTodoList = connect(
+  mapStateToTodoListProps, mapDispatchToTodoListProps
+)(TodoList)
 
 
-class FilterLink extends React.Component {
-  componentDidMount() {
-    const {store} = this.context
-    this.unsubscribe = store.subscribe(() => this.forceUpdate())
-  }
-
-  componentWillUnmount() {
-    this.unsubscribe()
-  }
-
-  render() {
-    const {store} = this.context
-    const {filter, children} = this.props
-    const {visibilityFilter} = store.getState()
-
-    return (
-      <Link
-        active={filter === visibilityFilter}
-        onClick={() => applyFilter({store, filter})}
-      >
-        {children}
-      </Link>
-    )
-  }
-}
-FilterLink.contextTypes = {
-  store: React.PropTypes.object
-}
+const mapStateToLinkProps = ({visibilityFilter}, {filter}) => ({
+  active: filter === visibilityFilter
+})
+const mapDispatchToLinkProps = (dispatch, {filter}) => ({
+  onClick: () => dispatch(setVisibilityFilter(filter))
+})
+const FilterLink = connect(mapStateToLinkProps, mapDispatchToLinkProps)(Link)
 
 
 const TodoApp = ({todos, visibilityFilter}) => (
   <div>
     <AddTodo />
-    <VisibleTodos />
+    <VisibleTodoList />
     <Footer />
   </div>
 )
