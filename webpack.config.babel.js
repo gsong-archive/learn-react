@@ -2,7 +2,7 @@ import path from 'path'
 
 
 export default {
-  entry: './main',
+  entry: './src/index',
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'bundle.js',
