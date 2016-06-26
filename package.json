@@ -17,10 +17,13 @@
   },
   "homepage": "https://github.com/gsong/learn-react#readme",
   "dependencies": {
+    "node-uuid": "~1.4.7",
     "react": "~15.1.0",
     "react-dom": "~15.1.0",
     "react-redux": "~4.4.5",
-    "redux": "~3.5.2"
+    "react-router": "~2.5.1",
+    "redux": "~3.5.2",
+    "rxjs-es6": "~5.0.0-alpha.12"
   },
   "devDependencies": {
     "babel-core": "~6.10.4",
