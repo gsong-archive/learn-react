@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'path';
 
 
 export default {
@@ -6,18 +6,19 @@ export default {
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'bundle.js',
-    publicPath: '/static/'
+    publicPath: '/static/',
   },
   module: {
     loaders: [{
       test: /\.js$/,
       loaders: ['babel'],
       exclude: /node_modules/,
-      include: __dirname
-    }]
+      include: __dirname,
+    }],
   },
   devServer: {
     inline: true,
-    port: 3333
-  }
-}
+    port: 3333,
+    historyApiFallback: true,
+  },
+};
